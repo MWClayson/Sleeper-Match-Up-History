@@ -1,10 +1,8 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
 import Grid from './Grid.jsx'
 function App() {
-  const [leagues, setLeagues] = useState(["916267273759891456"]);
+  const [leagues, setLeagues] = useState(["916267273759891456","793995802056982528","1052318984504311808"]);
   const [isGridVisible, setIsGridVisible] = useState(false);
 
   function setGridVisibility(){
@@ -16,7 +14,13 @@ function App() {
     <>
       <h1>Sleeper Match Up History</h1>
       <button onClick={setGridVisibility}>View Grid</button>
-      <Grid isVisible={isGridVisible} leagues = {leagues}></Grid>
+      <div>
+      {isGridVisible &&
+        <Grid leagues = {leagues}></Grid>
+      }
+      </div>
+    
+      
     </>
   )
 }
