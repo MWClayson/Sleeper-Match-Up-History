@@ -12,7 +12,7 @@ const router = createBrowserRouter([
     element: <Root/>,
   },
   {
-    path: "/view",
+    path: "/view/:leagueGroupId",
     element: <View/>
   },
 ]);

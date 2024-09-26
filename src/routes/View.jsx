@@ -1,22 +1,39 @@
-import { useSearchParams, useNavigate  } from "react-router-dom";
-import * as React from "react";
+import { useSearchParams, useNavigate, useParams  } from "react-router-dom";
+import { useState, useEffect } from 'react'
+import Grid from "../Grid";
+
+
 function View(){
-    let [searchParams, setSearchParams] = useSearchParams();
+    const {leagueGroupId} = useParams();
+    const [currentLeagues, setCurrentLeagues] = useState([]);
+    
+
     const navigate = useNavigate();
 
 
       // Check if there are no search params and redirect
     useEffect(() => {
-        if (searchParams.size === 0) {
-        navigate("/"); // Navigate to the home route
+        if (leagueGroupId == null) {
+            navigate("/"); // Navigate to the home route
         }
-    }, [searchParams, navigate]);
-    console.log(searchParams)
+        
+        const leagues = atob(leagueGroupId).split(",")
+        setCurrentLeagues(leagues)
+
+        
+
+    }, [leagueGroupId, navigate]);
+    
     
     return (
-    <> 
-        {searchParams}
-    </>
+        <>
+        league Group id: {leagueGroupId}
+        <br></br>
+        <p>{currentLeagues}</p>
+
+        <Grid leagues={currentLeagues}></Grid>
+        </>
+    
     )
 }
 
