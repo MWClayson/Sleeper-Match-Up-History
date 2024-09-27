@@ -6,7 +6,6 @@ import MatchUp from './MatchUp.jsx';
 
 function Grid({ leagues }) {
     const [loading, setLoading] = useState(true);
-   // const [leagues,setLeague] = useState({})
     const [players, setPlayers] = useState([])
     const [matchUps, setMatchUps] = useState([])
 
@@ -68,7 +67,10 @@ function Grid({ leagues }) {
 
     if(loading){
         return(
-            <>loading...</>
+
+            <>loading...
+            <progress value={null} />
+            </>
         )
     }
     return (
