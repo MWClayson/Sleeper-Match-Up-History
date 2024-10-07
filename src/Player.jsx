@@ -1,39 +1,37 @@
 import { useEffect, useState } from "react";
 import {SleeperImageCDN} from './Consts.js'
 import { getUser } from "./API.js";
+import Avatar from '@mui/material/Avatar';
+import Stack from '@mui/material/Stack';
+import Box from '@mui/material/Box';
 
-function Player({playerId}){
-    const [loading, setLoading] = useState(true);
-    const [playerImage, setPlayerImage] = useState("")
-    const [userInfo, setUserInfo] = useState({})
+function Player({player}){
 
-
-
-    useEffect(()=>{
-        setLoading(true)
-        getUser(playerId)
-            .then(result =>{ 
-                setUserInfo(result)
-                setLoading(false)
-            })
-    },[playerId])
+    // useEffect(()=>{
+    //     setLoading(true)
+    //     getUser(playerId)
+    //         .then(result =>{ 
+    //             setUserInfo(result)
+    //             setLoading(false)
+    //         })
+    // },[playerId])
 
     function getUserImageUrl(){
-       return SleeperImageCDN.replace('<AvatarID>',userInfo.avatar)
-    }
-
-    if(loading){
-        return(
-            <p>Loading...</p>
-        )
+       return SleeperImageCDN.replace('<AvatarID>',player.avatar)
     }
 
     return(
         <>
-            <div>
-                <img src={getUserImageUrl()}></img>
-                <p>{userInfo.display_name}</p>
-            </div>
+            <Box>
+                <Stack spacing={1}   direction="column"   
+                sx={{
+                    justifyContent: "center",
+                    alignItems: "center",
+                }}>
+                    <Avatar alt={player.display_name} src={getUserImageUrl()}/>
+                    {player.display_name}
+                </Stack>
+            </Box>
         </>
     )
 }

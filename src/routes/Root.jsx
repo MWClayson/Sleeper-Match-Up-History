@@ -1,11 +1,16 @@
 import { useState, useEffect, useCallback } from 'react'
 import { getLeague, getRosters } from '../API.js';
 import {useNavigate } from "react-router-dom";
+import Button from '@mui/material/Button';
+import Box from '@mui/material/Box';
+import TextField from '@mui/material/TextField';
+import { Stack } from '@mui/material';
 
 function Root(){
     const [currentLeagues,setCurrentLeagues] = useState([])
     const [inputValue, setInputValue] = useState("")
     const [isLoading, setIsLoading] = useState(false);
+    const [isByLeague, setIsByLeague] = useState(false);
     const navigate = useNavigate();
 
     // const getLeague(leagueId){
@@ -22,9 +27,18 @@ function Root(){
     function addLeague()
     {       
         setIsLoading(true);
+        // if(!isNumber(inputValue))
+        // {
+        //     setInputValue("");
+        //     setIsLoading(false);
+        //     return;
+        // }
+
         getLeague(inputValue).then((result) => {
             setCurrentLeagues([...currentLeagues,result]);
             setInputValue("");
+            // setIsLoading(false);
+        }).finally(()=>{
             setIsLoading(false);
         });
         
@@ -47,12 +61,19 @@ function Root(){
     return (
         <>
         <h1>Sleeper Match Up History</h1>
-        <p>
-            <label>league Id:
-                <input value = {inputValue} disabled = {isLoading} onChange={handleLeagueAddChange} name="leagueId"></input>
-            </label>
-            <button onClick={addLeague} disabled={isLoading}>{!isLoading ? 'add' : 'loading...'}</button>
-        </p>
+
+        <Box>  
+            <Stack   
+                direction="column"
+                spacing={2}
+                sx={{
+                    justifyContent: "flex-end",
+                    alignItems: "center",
+            }}>    
+                <TextField id="leagueId" label="League Id" variant="standard" value = {inputValue} disabled = {isLoading} onChange={handleLeagueAddChange}/>
+                <Button onClick={addLeague} disabled={isLoading} variant="text">{!isLoading ? 'add' : 'loading...'}</Button>
+            </Stack>
+        </Box>
         
         <ul>
             {currentLeagues.map((i) => (
@@ -61,7 +82,7 @@ function Root(){
                 </>
             ))}
         </ul>
-        <button onClick={viewGrid} disabled={isLoading}>View Grid</button>
+        <Button onClick={viewGrid} disabled={isLoading || currentLeagues.length == 0} variant="contained">Save</Button>
         </>
     )
 }
