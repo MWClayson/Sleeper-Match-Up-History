@@ -36,7 +36,7 @@ function Root(){
     }
 
     function isNumber(value) {
-        var integerValue = parseInt(value);
+        let integerValue = parseInt(value);
 
         if(!isNaN(value) && value === '' + integerValue)
             return true

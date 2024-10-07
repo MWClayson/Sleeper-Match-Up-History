@@ -4,6 +4,7 @@ export async function matchUpBuilder(leagueIds){
     const matchUpsList = []
 
     for (const leagueId of leagueIds ){
+        const league = await getLeague(leagueId);
         const rosterList = await getRosters(leagueId);
         console.log(rosterList);
         const rosterPair = []
@@ -31,6 +32,8 @@ export async function matchUpBuilder(leagueIds){
                 if(matchup.roster_id != matchup2.roster_id){
                     matchUpsList.push({
                         leagueId: leagueId,
+                        leagueName: league.name,
+                        leagueYear: league.season,
                         week: week,
                         matchUpId: matchup.matchup_id,
                         team1: rosterPair.find(i => i.rosterID == matchup.roster_id).owner,
