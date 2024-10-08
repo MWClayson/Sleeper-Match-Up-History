@@ -5,12 +5,16 @@ import { matchUpBuilder } from './MatchUpBuilder.js';
 import MatchUp from './MatchUp.jsx';
 import Stack from '@mui/material/Stack';
 import Popover from '@mui/material/Popover';
+import Divider from '@mui/material/Divider';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
 
 function Grid({ leagues }) {
     const [loading, setLoading] = useState(true);
     const [players, setPlayers] = useState([])
     const [matchUps, setMatchUps] = useState([])
     const [hoverStats, setHoverStats] = useState([]);
+    const [anchorEl, setAnchorEl] = useState(null);
 
 
 
@@ -70,7 +74,7 @@ function Grid({ leagues }) {
         return {team1Count, team2Count}
     }
 
-    function setHoverItem(teamOne, teamTwo){
+    function setHoverItem(event,teamOne, teamTwo){
         let matchupsList = [];
 
         
@@ -99,7 +103,17 @@ function Grid({ leagues }) {
             })
         }
         setHoverStats(matchupsList);
+        if(matchupsList.length > 0){
+            setAnchorEl(event.currentTarget);
+        }
     }
+
+    const handlePopoverClose = () => {
+        setAnchorEl(null);
+    };
+
+
+      const open = Boolean(anchorEl);
 
 
     // function getCleanPlayers(){
@@ -134,27 +148,55 @@ function Grid({ leagues }) {
                             <Player player={playerRow}></Player> 
                         </td>
                         {players.map((playerColumn) => (
-                            <td onMouseOver={() => setHoverItem(playerRow.user_id, playerColumn.user_id)}>
-                                <MatchUp score={matchUpCalculator(playerRow.user_id, playerColumn.user_id)}></MatchUp>
+                            <td 
+                            onMouseEnter={(event) => setHoverItem(event,playerRow.user_id, playerColumn.user_id)}
+                            onMouseLeave={handlePopoverClose}
+
+                            >
+                                <MatchUp score={matchUpCalculator(playerRow.user_id, playerColumn.user_id)} middle = {playerRow.user_id == playerColumn.user_id}></MatchUp>
                             </td>   
                         ))}
                     </tr>
                 ))}
                 
             </table>
-            <Popover>
-                <Stack>
-                    {/* <p>{s} vs {}</p> */}
-                    {hoverStats.map((stat => (
-                        <div>
-                            <p>League Name: {stat.leagueName ?? ""}</p>
-                            <p>season: {stat.season ?? ""}</p>
-                            <p>week: {stat.week ?? ""}</p>
-                            <p>Team1 Score: {stat.teamOneScore ?? ""}</p>
-                            <p>Team2 Score: {stat.teamTwoScore ?? ""}</p>
-                        </div>
-                    )))}
-                </Stack>
+            <Popover
+                    id="mouse-over-popover"
+                    sx={{ pointerEvents: 'none' }}
+                    open={open}
+                    anchorEl={anchorEl}
+                    anchorOrigin={{
+                      vertical: 'bottom',
+                      horizontal: 'center',
+                    }}
+                    transformOrigin={{
+                      vertical: 'top',
+                      horizontal: 'center',
+                    }}
+                    onClose={handlePopoverClose}
+                    disableRestoreFocus>
+                    <Stack   
+                        direction="column"
+                        divider={<Divider orientation="horizontal" flexItem />}
+                        spacing={2}
+                        sx={{
+                            bgcolor: 'background.paper',
+                            boxShadow: 1,
+                            borderRadius: 2,
+                            p: 2,
+                            minWidth: 300,
+                          }}    
+                    >
+
+                        {hoverStats.map((stat => (
+                            <div>
+                                <p>{stat.leagueName ?? ""} {stat.season ?? ""} - Week {stat.week ?? ""} </p>
+                                <p>{stat.teamOneScore ?? ""} - {stat.teamTwoScore ?? ""}</p>
+                            </div>
+                        )))}
+
+                    </Stack>
+
             </Popover>
 
         </>

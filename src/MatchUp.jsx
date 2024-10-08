@@ -9,12 +9,25 @@ function MatchUp({score, middle}){
 
     if(middle){
         return(
-            <>
-            </>
+            <Box        
+            sx={{
+            width: 100,
+            height: 100,
+            borderRadius: 1,
+            bgcolor: 'grey',
+            '&:hover': {
+                bgcolor: 'primary.dark',
+            },
+            justifyContent: "center",
+            alignItems: "center",
+            }} 
+            
+        >
+        </Box>
         )
     }
     return (
-        <>
+
         <Box        
             sx={{
             width: 100,
@@ -29,11 +42,9 @@ function MatchUp({score, middle}){
             }} 
             
         >
-            <p>
             {score.team1Count} - {score.team2Count}
-            </p>
         </Box>
-        </>
+
     )
 
 }

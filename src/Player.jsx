@@ -22,7 +22,16 @@ function Player({player}){
 
     return(
         <>
-            <Box>
+            <Box
+            sx={{
+                width: 100,
+                height: 100,
+                borderRadius: 1,
+                bgcolor: 'grey',
+                justifyContent: "center",
+                alignItems: "center",
+                }} 
+                >
                 <Stack spacing={1}   direction="column"   
                 sx={{
                     justifyContent: "center",
