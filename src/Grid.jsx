@@ -1,52 +1,106 @@
-import { useState, useEffect, useCallback } from 'react'
-import { getLeague, getRosters, getUser } from './API.js';
+import { useState, useEffect } from 'react'
+import { getRosters, getUser } from './API.js';
 import Player from './Player.jsx'
 import { matchUpBuilder } from './MatchUpBuilder.js';
 import MatchUp from './MatchUp.jsx';
-import Stack from '@mui/material/Stack';
-import Popover from '@mui/material/Popover';
-import Divider from '@mui/material/Divider';
-import List from '@mui/material/List';
-import ListItem from '@mui/material/ListItem';
+import Typography from '@mui/material/Typography';
+
+import * as d3 from "d3";
+import MatchUpPopOver from './Components/MatchUpPopOver.jsx';
 
 function Grid({ leagues }) {
     const [loading, setLoading] = useState(true);
     const [players, setPlayers] = useState([])
     const [matchUps, setMatchUps] = useState([])
     const [hoverStats, setHoverStats] = useState([]);
+    const [hoverPlayers, setHoverPlayers] = useState({})
     const [anchorEl, setAnchorEl] = useState(null);
+    const [minMaxRatio,setMinMaxRatio] = useState({
+        MinRatio: Number.MAX_VALUE,
+        MaxRatio: -Number.MAX_VALUE
+    });
 
 
+    useEffect(() => {
+        setLoading(true);
+    
+        const fetchPlayersAndMatchUps = async () => {
+            const playerList = [];
+            const ownerIds = new Set(); // Use Set to keep track of unique owner IDs
+    
+            // Step 1: Collect all unique owner IDs from the rosters across all leagues
+            for (const leagueId of leagues) {
+                const rosters = await getRosters(leagueId);
+                
+                rosters.forEach(roster => {
+                    ownerIds.add(roster.owner_id); // Add unique owner_id
+                });
+            }
+            console.log(ownerIds);
+            // Step 2: Fetch user data for all unique owner IDs
+            const userPromises = Array.from(ownerIds).map(ownerId => getUser(ownerId));
+    
+            // Wait for all users to be fetched
+            const users = await Promise.all(userPromises);
+    
+            // Populate playerList with fetched user data
+            users.forEach(user => {
+                playerList.push(user);
+            });
+    
+            // Step 3: Fetch matchups
+            const matchUps = await matchUpBuilder(leagues);
+    
+            // Step 4: Update state after all users and matchups are fetched
+            setPlayers(playerList);   
+            setMatchUps(matchUps);
+            setLoading(false);
+        };
+    
+        // Call the async function
+        fetchPlayersAndMatchUps();
+    }, [leagues]);
+    //const colorFunction = ;
 
-    useEffect(()=>{
-        setLoading(true)
-        const playerList = [];
-        for (const leagueId of leagues ){       
-            getRosters(leagueId)
-                .then(result =>{ 
-                    result.forEach(x => {
-                        const i = playerList.findIndex(e => e.user_id === x.owner_id);
-                        console.log(x.owner_id+"PlayerIndex")
-                        if (i === -1) {
-                            getUser(x.owner_id)
-                            .then(result =>{ 
-                                playerList.push(result)
-                            })              
+    useEffect(() => {
+        // Ensure the calculation only happens when all data is loaded
+        if (players.length > 0 && matchUps.length > 0 && !loading) {
+            let minRatio = Number.MAX_VALUE;
+            let maxRatio = -Number.MAX_VALUE;
+    
+            // Loop through players to calculate the ratio for all combinations
+            players.forEach((teamOne) => {
+                players.forEach((teamTwo) => {
+                    let ratio = 0;
+    
+                    // Calculate the ratio for matchups where teamOne is team1
+                    matchUps.filter(mu => mu.team1 === teamOne.user_id && mu.team2 === teamTwo.user_id).forEach(matchup => {
+                        if (matchup.team1Score > matchup.team2Score) {
+                            ratio += 1;
+                        } else if (matchup.team1Score < matchup.team2Score) {
+                            ratio -= 1;
                         }
-                    })
-                    
-                })
+                    });
+    
+                    // Calculate the ratio for matchups where teamOne is team2
+                    matchUps.filter(mu => mu.team2 === teamOne.user_id && mu.team1 === teamTwo.user_id).forEach(matchup => {
+                        if (matchup.team1Score > matchup.team2Score) {
+                            ratio -= 1;
+                        } else if (matchup.team1Score < matchup.team2Score) {
+                            ratio += 1;
+                        }
+                    });
+    
+                    // Update local min and max values based on the calculated ratio
+                    minRatio = Math.min(minRatio, ratio);
+                    maxRatio = Math.max(maxRatio, ratio);
+                });
+            });
+    
+            // Update the state with final calculated values after the loops
+            setMinMaxRatio({ MinRatio: minRatio, MaxRatio: maxRatio});
         }
-        setPlayers(playerList)    
-        matchUpBuilder(leagues).then(result => {
-            setMatchUps(result); 
-            console.log(matchUps);
-            setLoading(false)
-        });
-        
-        
-    },[leagues])
-
+    }, [players, matchUps, loading]);
 
     function matchUpCalculator(teamOne, teamTwo){
         let team1Count = 0;
@@ -102,9 +156,22 @@ function Grid({ leagues }) {
                 teamTwoScore: result.team1Score
             })
         }
-        setHoverStats(matchupsList);
-        if(matchupsList.length > 0){
-            setAnchorEl(event.currentTarget);
+
+        let teamOneObject = players.find( i=> i.user_id == teamOne)
+        let teamTwoObject = players.find(i => i.user_id == teamTwo)
+        
+        if (teamOneObject && teamTwoObject) {
+            setHoverPlayers({
+                teamOne: teamOneObject,
+                teamTwo: teamTwoObject
+            });
+    
+            if (matchupsList.length > 0) {
+                setAnchorEl(event.currentTarget);
+            }
+            setHoverStats(matchupsList);
+        } else {
+            console.warn('One of the teams is not found:', { teamOneObject, teamTwoObject });
         }
     }
 
@@ -125,7 +192,6 @@ function Grid({ leagues }) {
 
     if(loading){
         return(
-
             <>loading...
             <progress value={null} />
             </>
@@ -153,52 +219,14 @@ function Grid({ leagues }) {
                             onMouseLeave={handlePopoverClose}
 
                             >
-                                <MatchUp score={matchUpCalculator(playerRow.user_id, playerColumn.user_id)} middle = {playerRow.user_id == playerColumn.user_id}></MatchUp>
+                                <MatchUp score={matchUpCalculator(playerRow.user_id, playerColumn.user_id)} middle = {playerRow.user_id == playerColumn.user_id } colorFunction = {d3.scaleSequential(d3.interpolateRdYlGn).domain([minMaxRatio.MinRatio,minMaxRatio.MaxRatio])}></MatchUp>
                             </td>   
                         ))}
                     </tr>
                 ))}
                 
             </table>
-            <Popover
-                    id="mouse-over-popover"
-                    sx={{ pointerEvents: 'none' }}
-                    open={open}
-                    anchorEl={anchorEl}
-                    anchorOrigin={{
-                      vertical: 'bottom',
-                      horizontal: 'center',
-                    }}
-                    transformOrigin={{
-                      vertical: 'top',
-                      horizontal: 'center',
-                    }}
-                    onClose={handlePopoverClose}
-                    disableRestoreFocus>
-                    <Stack   
-                        direction="column"
-                        divider={<Divider orientation="horizontal" flexItem />}
-                        spacing={2}
-                        sx={{
-                            bgcolor: 'background.paper',
-                            boxShadow: 1,
-                            borderRadius: 2,
-                            p: 2,
-                            minWidth: 300,
-                          }}    
-                    >
-
-                        {hoverStats.map((stat => (
-                            <div>
-                                <p>{stat.leagueName ?? ""} {stat.season ?? ""} - Week {stat.week ?? ""} </p>
-                                <p>{stat.teamOneScore ?? ""} - {stat.teamTwoScore ?? ""}</p>
-                            </div>
-                        )))}
-
-                    </Stack>
-
-            </Popover>
-
+            <MatchUpPopOver hoverPlayers = {hoverPlayers} hoverStats = {hoverStats} open = {open} handlePopoverClose = {handlePopoverClose} anchorEl={anchorEl} />
         </>
     )
 }

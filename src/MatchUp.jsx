@@ -1,12 +1,17 @@
 import * as React from 'react';
 import Box from '@mui/material/Box';
 import { ThemeProvider } from '@mui/material/styles';
+import Typography from '@mui/material/Typography';
 
-
-function MatchUp({score, middle}){
-    const [color, setColor] = React.useState('#007fff');
+function MatchUp({score, middle, colorFunction}){
+    //const [color, setColor] = React.useState('#FFFFFF');
+    const color = colorFunction(score.team1Count-score.team2Count)
+    // const useStyles = makeStyles({
+    //     bw: {
+    //       filter: `brightness(0.5)`,
+    //     },
+    //   });
     
-
     if(middle){
         return(
             <Box        
@@ -14,10 +19,7 @@ function MatchUp({score, middle}){
             width: 100,
             height: 100,
             borderRadius: 1,
-            bgcolor: 'grey',
-            '&:hover': {
-                bgcolor: 'primary.dark',
-            },
+            bgcolor: color,
             justifyContent: "center",
             alignItems: "center",
             }} 
@@ -33,16 +35,20 @@ function MatchUp({score, middle}){
             width: 100,
             height: 100,
             borderRadius: 1,
-            bgcolor: 'green',
+            bgcolor: colorFunction(score.team1Count-score.team2Count),
             '&:hover': {
-                bgcolor: 'primary.dark',
+                filter: `brightness(0.5)`
             },
             justifyContent: "center",
             alignItems: "center",
             }} 
             
         >
-            {score.team1Count} - {score.team2Count}
+        <Typography noWrap overflow={false} maxWidth={100}>
+            {score.team1Count} - {score.team2Count}        
+        </Typography>
+            
+            
         </Box>
 
     )
