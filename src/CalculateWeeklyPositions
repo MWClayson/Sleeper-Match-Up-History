@@ -1,0 +1,16 @@
+import { matchUpBuilder } from "./MatchUpBuilder.js";
+import {getLeague,getRosters, getMatchUps} from './API.js'
+export async function calculateWeeklyPositions(leagueId){
+    const league = await getLeague(leagueId);
+    console.log(league);
+
+    const leagueWeekEnd = league.settings.playoff_week_start;
+    console.log(leagueWeekEnd);
+    let week = 1;
+    const weekMatchup = []
+    while(week < leagueWeekEnd){
+
+        week++;
+    }
+
+}
